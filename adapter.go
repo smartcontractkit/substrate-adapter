@@ -13,14 +13,11 @@ import (
 	"strings"
 )
 
-type Argument struct {
-	Type  string
-	Value string
-}
-
 type Request struct {
 	Function string
-	Args     []Argument
+	Type     string
+	Value    interface{}
+	Result   interface{}
 }
 
 type txType int
@@ -69,6 +66,12 @@ func newSubstrateAdapter(privkey, txtypeStr, endpoint string) (*substrateAdapter
 }
 
 func (adapter substrateAdapter) handle(req Request) (interface{}, error) {
+	// Set Value to whatever is defined in the "result" key
+	// if the default "value" is empty
+	if req.Value == nil || req.Value == "" {
+		req.Value = req.Result
+	}
+
 	api, err := gsrpc.NewSubstrateAPI(adapter.endpoint.String())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed getting substrate API")
@@ -151,73 +154,48 @@ func (adapter substrateAdapter) handle(req Request) (interface{}, error) {
 }
 
 func NewCall(m *types.Metadata, req Request) (types.Call, error) {
-	c, err := m.FindCallIndex(req.Function)
+	arg, err := convertTypes(req.Type, fmt.Sprintf("%v", req.Value))
 	if err != nil {
 		return types.Call{}, err
 	}
 
-	args, err := convertTypes(req.Args)
-	if err != nil {
-		return types.Call{}, err
-	}
-
-	var a []byte
-	for _, arg := range args {
-		e, err := types.EncodeToBytes(arg)
-		if err != nil {
-			return types.Call{}, err
-		}
-		a = append(a, e...)
-	}
-
-	return types.Call{CallIndex: c, Args: a}, nil
+	return types.NewCall(m, req.Function, arg)
 }
 
-func convertTypes(args []Argument) ([]interface{}, error) {
-	var res []interface{}
-	for _, arg := range args {
-		switch strings.ToLower(arg.Type) {
-		case "bool":
-			var b types.Bool
-			switch strings.ToLower(arg.Value) {
-			case "true":
-				b = types.NewBool(true)
-			case "false":
-				b = types.NewBool(false)
-			default:
-				return nil, errors.New("unable to parse bool")
-			}
-			res = append(res, b)
-		case "uint256":
-			i, err := strconv.ParseInt(arg.Value, 10, 64)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed parsing uint256")
-			}
-			val := types.NewU256(*big.NewInt(i))
-			res = append(res, val)
-		case "int256":
-			i, err := strconv.ParseInt(arg.Value, 10, 64)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed parsing int256")
-			}
-			val := types.NewI256(*big.NewInt(i))
-			res = append(res, val)
-		case "ucompact":
-			i, err := strconv.ParseInt(arg.Value, 10, 64)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed parsing ucompact")
-			}
-			val := types.UCompact(i)
-			res = append(res, val)
-		case "bytes":
-			res = append(res, types.Bytes(arg.Value))
-		case "address":
-			addr, err := types.NewAddressFromHexAccountID(fmt.Sprintf("%s", arg.Value))
-			if err != nil {
-				return nil, errors.Wrap(err, "unable to parse address")
-			}
-			res = append(res, addr)
+func convertTypes(t, v string) (interface{}, error) {
+	switch strings.ToLower(t) {
+	case "bool":
+		switch strings.ToLower(v) {
+		case "true":
+			return types.NewBool(true), nil
+		case "false":
+			return types.NewBool(false), nil
+		default:
+			return nil, errors.New("unable to parse bool")
 		}
+	case "uint256":
+		i, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed parsing uint256")
+		}
+		return types.NewU256(*big.NewInt(i)), nil
+	case "int256":
+		i, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed parsing int256")
+		}
+		return types.NewI256(*big.NewInt(i)), nil
+	case "ucompact":
+		i, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed parsing ucompact")
+		}
+		return types.UCompact(i), nil
+	case "bytes":
+		return types.Bytes(v), nil
+	case "address":
+		return types.NewAddressFromHexAccountID(fmt.Sprintf("%s", v))
 	}
-	return res, nil
+
+	return nil, errors.New("unknown type")
 }
