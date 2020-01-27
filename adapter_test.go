@@ -8,6 +8,11 @@ import (
 	"testing"
 )
 
+type Argument struct {
+	Type  string
+	Value string
+}
+
 func Test_convertTypes(t *testing.T) {
 	addr1, err := types.NewAddressFromHexAccountID("0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d")
 	require.NoError(t, err)
@@ -23,22 +28,22 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"converts bool",
 			[]Argument{{
-				Type: "bool",
+				Type:  "bool",
 				Value: "false",
 			}, {
-					Type: "bool",
-					Value: "true",
+				Type:  "bool",
+				Value: "true",
 			}},
 			[]interface{}{
-						types.Bool(false),
-						types.Bool(true),
+				types.Bool(false),
+				types.Bool(true),
 			},
 			false,
 		},
 		{
 			"fails on invalid bool type",
 			[]Argument{{
-				Type: "bool",
+				Type:  "bool",
 				Value: "123",
 			}},
 			[]interface{}{},
@@ -47,10 +52,10 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"converts uint256",
 			[]Argument{{
-				Type: "uint256",
+				Type:  "uint256",
 				Value: "1234567890",
 			}, {
-				Type: "uint256",
+				Type:  "uint256",
 				Value: "99999999999999",
 			}},
 			[]interface{}{
@@ -62,7 +67,7 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"fails on invalid uint256",
 			[]Argument{{
-				Type: "uint256",
+				Type:  "uint256",
 				Value: "abcdef",
 			}},
 			[]interface{}{},
@@ -71,10 +76,10 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"converts int256",
 			[]Argument{{
-				Type: "int256",
+				Type:  "int256",
 				Value: "1234567890",
 			}, {
-				Type: "int256",
+				Type:  "int256",
 				Value: "-99999999999999",
 			}},
 			[]interface{}{
@@ -86,7 +91,7 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"fails on invalid int256",
 			[]Argument{{
-				Type: "uint256",
+				Type:  "uint256",
 				Value: "abcdef",
 			}},
 			[]interface{}{},
@@ -95,10 +100,10 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"converts ucompact",
 			[]Argument{{
-				Type: "ucompact",
+				Type:  "ucompact",
 				Value: "1234567890",
 			}, {
-				Type: "ucompact",
+				Type:  "ucompact",
 				Value: "99999999999999",
 			}},
 			[]interface{}{
@@ -110,7 +115,7 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"fails on invalid ucompact",
 			[]Argument{{
-				Type: "ucompact",
+				Type:  "ucompact",
 				Value: "abcdef",
 			}},
 			[]interface{}{},
@@ -119,10 +124,10 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"converts bytes",
 			[]Argument{{
-				Type: "bytes",
+				Type:  "bytes",
 				Value: "some string",
 			}, {
-				Type: "bytes",
+				Type:  "bytes",
 				Value: "{\"key\":\"value\"}",
 			}},
 			[]interface{}{
@@ -134,10 +139,10 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"converts addresses",
 			[]Argument{{
-				Type: "address",
+				Type:  "address",
 				Value: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
 			}, {
-				Type: "address",
+				Type:  "address",
 				Value: "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48",
 			}},
 			[]interface{}{
@@ -149,7 +154,7 @@ func Test_convertTypes(t *testing.T) {
 		{
 			"fails on invalid addresses",
 			[]Argument{{
-				Type: "address",
+				Type:  "address",
 				Value: "not an address",
 			}},
 			[]interface{}{},
@@ -158,13 +163,15 @@ func Test_convertTypes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := convertTypes(tt.args)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("convertTypes() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if err == nil && !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("convertTypes() got = %v, want %v", got, tt.want)
+			for i, arg := range tt.args {
+				got, err := convertTypes(arg.Type, arg.Value)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("convertTypes() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if err == nil && !reflect.DeepEqual(got, tt.want[i]) {
+					t.Errorf("convertTypes() got = %v, want %v", got, tt.want)
+				}
 			}
 		})
 	}
