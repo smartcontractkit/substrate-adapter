@@ -74,6 +74,21 @@ func Test_convertTypes(t *testing.T) {
 			true,
 		},
 		{
+			"converts uint128",
+			[]Argument{{
+				Type:  "uint128",
+				Value: "1234567890",
+			}, {
+				Type:  "uint128",
+				Value: "1.8888e+10",
+			}},
+			[]interface{}{
+				types.NewU128(*big.NewInt(1234567890)),
+				types.NewU128(*big.NewInt(18888000000)),
+			},
+			false,
+		},
+		{
 			"converts int256",
 			[]Argument{{
 				Type:  "int256",

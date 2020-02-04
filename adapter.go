@@ -7,9 +7,7 @@ import (
 	"github.com/centrifuge/go-substrate-rpc-client/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/types"
 	"github.com/pkg/errors"
-	"math/big"
 	"net/url"
-	"strconv"
 	"strings"
 )
 
@@ -160,42 +158,4 @@ func NewCall(m *types.Metadata, req Request) (types.Call, error) {
 	}
 
 	return types.NewCall(m, req.Function, arg)
-}
-
-func convertTypes(t, v string) (interface{}, error) {
-	switch strings.ToLower(t) {
-	case "bool":
-		switch strings.ToLower(v) {
-		case "true":
-			return types.NewBool(true), nil
-		case "false":
-			return types.NewBool(false), nil
-		default:
-			return nil, errors.New("unable to parse bool")
-		}
-	case "uint256":
-		i, err := strconv.ParseInt(v, 10, 64)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed parsing uint256")
-		}
-		return types.NewU256(*big.NewInt(i)), nil
-	case "int256":
-		i, err := strconv.ParseInt(v, 10, 64)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed parsing int256")
-		}
-		return types.NewI256(*big.NewInt(i)), nil
-	case "ucompact":
-		i, err := strconv.ParseInt(v, 10, 64)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed parsing ucompact")
-		}
-		return types.UCompact(i), nil
-	case "bytes":
-		return types.Bytes(v), nil
-	case "address":
-		return types.NewAddressFromHexAccountID(fmt.Sprintf("%s", v))
-	}
-
-	return nil, errors.New("unknown type")
 }
