@@ -12,10 +12,11 @@ import (
 )
 
 type Request struct {
-	Function string
-	Type     string
-	Value    interface{}
-	Result   interface{}
+	Function  string
+	Type      string
+	Value     interface{}
+	Result    interface{}
+	RequestId interface{} `json:"request_id"`
 }
 
 type txType int
@@ -152,10 +153,20 @@ func (adapter substrateAdapter) handle(req Request) (interface{}, error) {
 }
 
 func NewCall(m *types.Metadata, req Request) (types.Call, error) {
-	arg, err := convertTypes(req.Type, fmt.Sprintf("%v", req.Value))
+	reqId, err := convertTypes("uint64", fmt.Sprintf("%v", req.RequestId))
 	if err != nil {
 		return types.Call{}, err
 	}
 
-	return types.NewCall(m, req.Function, arg)
+	value, err := convertTypes(req.Type, fmt.Sprintf("%v", req.Value))
+	if err != nil {
+		return types.Call{}, err
+	}
+
+	arg, err := types.EncodeToBytes(value)
+	if err != nil {
+		return types.Call{}, err
+	}
+
+	return types.NewCall(m, req.Function, reqId, arg)
 }
