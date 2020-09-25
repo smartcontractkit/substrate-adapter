@@ -24,6 +24,7 @@ FROM debian:stretch-slim
 
 COPY --from=go-builder /go/src/github.com/smartcontractkit/substrate-adapter/substrate-adapter /usr/local/bin/
 COPY --from=rust-builder /root/.cargo/bin /usr/local/bin/
+COPY --from=rust-builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 EXPOSE 8080
 ENTRYPOINT ["substrate-adapter"]
