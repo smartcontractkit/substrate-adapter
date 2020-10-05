@@ -136,7 +136,7 @@ func (adapter substrateAdapter) handle(req Request) (interface{}, error) {
 		Nonce:              types.NewUCompact(new(big.Int).SetInt64(int64(nonce))),
 		SpecVersion:        rv.SpecVersion,
 		Tip:                types.NewUCompact(new(big.Int).SetInt64(0)),
-		TransactionVersion: 1, // TODO
+		TransactionVersion: rv.TransactionVersion,
 	}
 
 	// Sign the transaction
