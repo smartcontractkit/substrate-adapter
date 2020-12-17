@@ -7,6 +7,7 @@ import (
 	"github.com/centrifuge/go-substrate-rpc-client/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/types"
 	"github.com/pkg/errors"
+	"math/big"
 	"net/url"
 	"strings"
 )
@@ -33,7 +34,7 @@ type substrateAdapter struct {
 }
 
 func newSubstrateAdapter(privkey, txtypeStr, endpoint string) (*substrateAdapter, error) {
-	keypair, err := signature.KeyringPairFromSecret(privkey)
+	keypair, err := signature.KeyringPairFromSecret(privkey, "")
 	if err != nil {
 		return nil, err
 	}
@@ -102,14 +103,14 @@ func (adapter substrateAdapter) handle(req Request) (interface{}, error) {
 	}
 
 	// Get account nonce
-	key, err := types.CreateStorageKey(meta, "System", "AccountNonce", adapter.keyringPair.PublicKey, nil)
+	key, err := types.CreateStorageKey(meta, "System", "Account", adapter.keyringPair.PublicKey, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed getting account nonce key")
 	}
 
 	var nonce uint32
-	err = api.RPC.State.GetStorageLatest(key, &nonce)
-	if err != nil {
+	ok, err := api.RPC.State.GetStorageLatest(key, &nonce)
+	if !ok || err != nil {
 		return nil, errors.Wrap(err, "failed getting account nonce")
 	}
 
@@ -129,12 +130,13 @@ func (adapter substrateAdapter) handle(req Request) (interface{}, error) {
 	}
 
 	o := types.SignatureOptions{
-		BlockHash:   blockHash,
-		Era:         era,
-		GenesisHash: genesisHash,
-		Nonce:       types.UCompact(nonce),
-		SpecVersion: rv.SpecVersion,
-		Tip:         0,
+		BlockHash:          blockHash,
+		Era:                era,
+		GenesisHash:        genesisHash,
+		Nonce:              types.NewUCompact(new(big.Int).SetInt64(int64(nonce))),
+		SpecVersion:        rv.SpecVersion,
+		Tip:                types.NewUCompact(new(big.Int).SetInt64(0)),
+		TransactionVersion: rv.TransactionVersion,
 	}
 
 	// Sign the transaction

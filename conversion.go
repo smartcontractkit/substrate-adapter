@@ -129,7 +129,7 @@ func convertTypes(t, v string) (interface{}, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed parsing ucompact")
 		}
-		return types.UCompact(i), nil
+		return types.NewUCompact(new(big.Int).SetInt64(i)), nil
 	case "bytes":
 		return types.Bytes(v), nil
 	case "address":

@@ -122,8 +122,8 @@ func Test_convertTypes(t *testing.T) {
 				Value: "99999999999999",
 			}},
 			[]interface{}{
-				types.UCompact(1234567890),
-				types.UCompact(99999999999999),
+				types.NewUCompact(new(big.Int).SetInt64(1234567890)),
+				types.NewUCompact(new(big.Int).SetInt64(99999999999999)),
 			},
 			false,
 		},
