@@ -1,4 +1,4 @@
-package main
+package adapter
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ func parseDecimalString(input string) (*big.Int, error) {
 	return output, nil
 }
 
-func parseNumericString(input string) (*big.Int, error) {
+func ParseNumericString(input string) (*big.Int, error) {
 	if hasHexPrefix(input) {
 		output, ok := big.NewInt(0).SetString(removeHexPrefix(input), 16)
 		if !ok {
@@ -110,7 +110,7 @@ func convertTypes(t, v string) (interface{}, error) {
 		}
 		return types.NewI64(i), nil
 	case "int128", "uint128", "int256", "uint256":
-		i, err := parseNumericString(v)
+		i, err := ParseNumericString(v)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed parsing numeric string")
 		}

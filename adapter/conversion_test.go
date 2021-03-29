@@ -1,4 +1,4 @@
-package main
+package adapter
 
 import (
 	"github.com/centrifuge/go-substrate-rpc-client/types"
