@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/smartcontractkit/substrate-adapter/adapter"
 	"os"
 )
 
@@ -12,11 +13,11 @@ func main() {
 	txType := os.Getenv("SA_TX_TYPE")
 	endpoint := os.Getenv("SA_ENDPOINT")
 
-	adapter, err := newSubstrateAdapter(privkey, txType, endpoint)
+	adapterClient, err := adapter.NewSubstrateAdapter(privkey, txType, endpoint)
 	if err != nil {
 		fmt.Println("Failed starting Substrate adapter:", err)
 		return
 	}
 
-	RunWebserver(adapter.handle)
+	adapter.RunWebserver(adapterClient.Handle)
 }

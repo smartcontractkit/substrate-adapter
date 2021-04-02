@@ -1,4 +1,4 @@
-package main
+package adapter
 
 import (
 	"errors"
@@ -55,7 +55,6 @@ type JobReq struct {
 func validateRequest(t *JobReq) error {
 	validations := []int{
 		len(t.JobID),
-		len(t.Data.Function),
 	}
 
 	for _, v := range validations {
