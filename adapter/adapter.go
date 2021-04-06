@@ -7,6 +7,7 @@ import (
 	"github.com/centrifuge/go-substrate-rpc-client/v2/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v2/types"
 	"github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 	"math/big"
 	"net/url"
 	"strconv"
@@ -20,6 +21,7 @@ type Request struct {
 	RequestType string `json:"request_type"`
 	Value       string `json:"value"`
 	Result      string `json:"result"`
+	Multiply    int64  `json:"multiply,omitempty"`
 
 	// Runlog params:
 	Function  string      `json:"function"`
@@ -114,12 +116,12 @@ func (c substrateClient) Sign(ext *types.Extrinsic) error {
 	}
 
 	o := types.SignatureOptions{
-		BlockHash:          blockHash,
 		Era:                era,
-		GenesisHash:        c.genesisHash,
 		Nonce:              types.NewUCompact(new(big.Int).SetInt64(int64(c.GetAndIncrementNonce()))),
-		SpecVersion:        c.runtimeVersion.SpecVersion,
 		Tip:                types.NewUCompact(new(big.Int).SetInt64(0)),
+		SpecVersion:        c.runtimeVersion.SpecVersion,
+		GenesisHash:        c.genesisHash,
+		BlockHash:          blockHash,
 		TransactionVersion: c.runtimeVersion.TransactionVersion,
 	}
 
@@ -155,7 +157,7 @@ func (c substrateClient) SubmitCall(call types.Call) (types.Hash, error) {
 	ext := types.NewExtrinsic(call)
 	err := c.Sign(&ext)
 	if err != nil {
-		return types.Hash{}, err
+		return types.Hash{}, errors.Wrap(err, "failed to sign extrinsic")
 	}
 
 	// Send the extrinsic
@@ -216,9 +218,7 @@ func (adapter substrateAdapter) Handle(req Request) (interface{}, error) {
 	}
 
 	// Send the extrinsic
-	hash, err := adapter.client.SubmitCall(call)
-
-	return hash, nil
+	return adapter.client.SubmitCall(call)
 }
 
 func NewCall(m *types.Metadata, req Request) (types.Call, error) {
@@ -245,19 +245,22 @@ func NewFluxMonitorCall(m *types.Metadata, req Request) (types.Call, error) {
 	if err != nil {
 		return types.Call{}, errors.Wrap(err, "failed parsing uint32")
 	}
-	feedID := types.NewU32(uint32(i))
+	feedID := types.NewUCompactFromUInt(i)
 
 	i, err = strconv.ParseUint(req.RoundId, 10, 32)
 	if err != nil {
 		return types.Call{}, errors.Wrap(err, "failed parsing uint32")
 	}
-	roundID := types.NewU32(uint32(i))
+	roundID := types.NewUCompactFromUInt(i)
 
-	bi, err := ParseNumericString(req.Value)
+	num, err := ParseNumericString(req.Value)
 	if err != nil {
 		return types.Call{}, err
 	}
-	value := types.NewU128(*bi)
+	if req.Multiply != 0 {
+		num = num.Mul(decimal.NewFromInt(req.Multiply))
+	}
+	value := types.NewUCompact(num.BigInt())
 
 	return types.NewCall(m, "ChainlinkFeed.submit", feedID, roundID, value)
 }

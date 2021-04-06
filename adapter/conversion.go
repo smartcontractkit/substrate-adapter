@@ -2,8 +2,9 @@ package adapter
 
 import (
 	"fmt"
-	"github.com/centrifuge/go-substrate-rpc-client/types"
+	"github.com/centrifuge/go-substrate-rpc-client/v2/types"
 	"github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 	"math/big"
 	"strconv"
 	"strings"
@@ -34,20 +35,16 @@ func parseDecimalString(input string) (*big.Int, error) {
 	return output, nil
 }
 
-func ParseNumericString(input string) (*big.Int, error) {
+func ParseNumericString(input string) (decimal.Decimal, error) {
 	if hasHexPrefix(input) {
 		output, ok := big.NewInt(0).SetString(removeHexPrefix(input), 16)
 		if !ok {
-			return nil, fmt.Errorf("error parsing hex %s", input)
+			return decimal.Decimal{}, fmt.Errorf("error parsing hex %s", input)
 		}
-		return output, nil
+		return decimal.NewFromBigInt(output, 0), nil
 	}
 
-	output, ok := big.NewInt(0).SetString(input, 10)
-	if !ok {
-		return parseDecimalString(input)
-	}
-	return output, nil
+	return decimal.NewFromString(input)
 }
 
 func convertTypes(t, v string) (interface{}, error) {
@@ -116,13 +113,13 @@ func convertTypes(t, v string) (interface{}, error) {
 		}
 		switch strings.ToLower(t) {
 		case "int128":
-			return types.NewI128(*i), nil
+			return types.NewI128(*i.BigInt()), nil
 		case "uint128":
-			return types.NewU128(*i), nil
+			return types.NewU128(*i.BigInt()), nil
 		case "int256":
-			return types.NewI256(*i), nil
+			return types.NewI256(*i.BigInt()), nil
 		case "uint256":
-			return types.NewU256(*i), nil
+			return types.NewU256(*i.BigInt()), nil
 		}
 	case "ucompact":
 		i, err := strconv.ParseInt(v, 10, 64)
