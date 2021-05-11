@@ -2,7 +2,7 @@ package adapter
 
 import (
 	"fmt"
-	"github.com/centrifuge/go-substrate-rpc-client/v2/types"
+	"github.com/centrifuge/go-substrate-rpc-client/v3/types"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"math/big"

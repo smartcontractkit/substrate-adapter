@@ -3,9 +3,10 @@ package adapter
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type handler func(req Request) (interface{}, error)
@@ -14,7 +15,7 @@ func RunWebserver(
 	handler handler,
 ) {
 	srv := NewHTTPService(handler)
-	err := srv.Router.Run()
+	err := srv.Router.Run(fmt.Sprintf(":%v", 8081))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -99,6 +100,8 @@ func (srv *HttpService) Call(c *gin.Context) {
 	}
 
 	res, err := srv.Handler(req.Data)
+	fmt.Printf("%+v\n", req.Data)
+
 	if err != nil {
 		log.Println(err)
 		errorJob(c, http.StatusInternalServerError, req.JobID, "")
