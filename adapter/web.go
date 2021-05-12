@@ -13,9 +13,13 @@ type handler func(req Request) (interface{}, error)
 
 func RunWebserver(
 	handler handler,
+	port string,
 ) {
+	if port == "" {
+		port = "8080"
+	}
 	srv := NewHTTPService(handler)
-	err := srv.Router.Run(fmt.Sprintf(":%v", 8081))
+	err := srv.Router.Run(fmt.Sprintf(":%v", port))
 	if err != nil {
 		fmt.Println(err)
 	}

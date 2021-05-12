@@ -2,18 +2,19 @@ package adapter
 
 import (
 	"fmt"
-	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v3"
-	"github.com/centrifuge/go-substrate-rpc-client/v3/config"
-	"github.com/centrifuge/go-substrate-rpc-client/v3/signature"
-	"github.com/centrifuge/go-substrate-rpc-client/v3/types"
-	"github.com/pkg/errors"
-	"github.com/shopspring/decimal"
 	"math/big"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v3"
+	"github.com/centrifuge/go-substrate-rpc-client/v3/config"
+	"github.com/centrifuge/go-substrate-rpc-client/v3/signature"
+	"github.com/centrifuge/go-substrate-rpc-client/v3/types"
+	"github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 )
 
 type Request struct {

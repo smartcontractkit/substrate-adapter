@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/smartcontractkit/substrate-adapter/adapter"
 	"os"
+
+	"github.com/smartcontractkit/substrate-adapter/adapter"
 )
 
 func main() {
@@ -12,6 +13,7 @@ func main() {
 	privkey := os.Getenv("SA_PRIVATE_KEY")
 	txType := os.Getenv("SA_TX_TYPE")
 	endpoint := os.Getenv("SA_ENDPOINT")
+	port := os.Getenv("SA_PORT")
 
 	adapterClient, err := adapter.NewSubstrateAdapter(privkey, txType, endpoint)
 	if err != nil {
@@ -19,5 +21,5 @@ func main() {
 		return
 	}
 
-	adapter.RunWebserver(adapterClient.Handle)
+	adapter.RunWebserver(adapterClient.Handle, port)
 }
