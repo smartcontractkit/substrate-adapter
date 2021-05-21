@@ -108,7 +108,7 @@ func (srv *HttpService) Call(c *gin.Context) {
 
 	if err != nil {
 		log.Println(err)
-		errorJob(c, http.StatusInternalServerError, req.JobID, "")
+		errorJob(c, http.StatusInternalServerError, req.JobID, err.Error())
 		return
 	}
 
