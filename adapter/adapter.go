@@ -131,7 +131,7 @@ func (c substrateClient) Sign(ext *types.Extrinsic) error {
 }
 
 func (c substrateClient) FetchLatestNonce() (uint32, error) {
-	key, err := types.CreateStorageKey(c.meta, "System", "Account", c.keyringPair.PublicKey, nil)
+	key, err := types.CreateStorageKey(c.meta, "System", "Account", c.keyringPair.PublicKey)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed getting account nonce key")
 	}
@@ -209,11 +209,11 @@ func (adapter substrateAdapter) Handle(req Request) (interface{}, error) {
 
 	var call types.Call
 	var err error
-	if req.RequestType == "fluxmonitor" {
-		call, err = NewFluxMonitorCall(adapter.client.meta, req)
-	} else {
-		call, err = NewCall(adapter.client.meta, req)
-	}
+	// if req.RequestType == "fluxmonitor" {
+	call, err = NewFluxMonitorCall(adapter.client.meta, req)
+	// } else {
+	// 	call, err = NewCall(adapter.client.meta, req)
+	// }
 	if err != nil {
 		return nil, errors.Wrap(err, "failed creating call")
 	}
@@ -262,6 +262,10 @@ func NewFluxMonitorCall(m *types.Metadata, req Request) (types.Call, error) {
 		num = num.Mul(decimal.NewFromInt(req.Multiply))
 	}
 	value := types.NewUCompact(num.BigInt())
+	fmt.Print(feedID)
+	fmt.Print(roundID)
+	fmt.Print(value)
+	fmt.Print("before submit")
 
 	return types.NewCall(m, "ChainlinkFeed.submit", feedID, roundID, value)
 }

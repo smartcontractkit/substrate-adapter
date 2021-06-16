@@ -61,6 +61,8 @@ func validateRequest(t *JobReq) error {
 	validations := []int{
 		len(t.JobID),
 	}
+	fmt.Println(t.JobID)
+	fmt.Println(t.Data)
 
 	for _, v := range validations {
 		if v == 0 {
@@ -96,6 +98,13 @@ func (srv *HttpService) Call(c *gin.Context) {
 		errorJob(c, http.StatusBadRequest, req.JobID, "Invalid JSON payload")
 		return
 	}
+	// println("request: ")
+
+	// body, _ := ioutil.ReadAll(c.Request.Response.Body)
+	// body, _ := ioutil.Read(c.Request)
+
+	// println(c.Request.Header)
+	// println(string(body))
 
 	if err := validateRequest(&req); err != nil {
 		log.Println(err)
